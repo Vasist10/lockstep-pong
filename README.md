@@ -4,8 +4,8 @@ A deterministic multiplayer Pong implementation using **lockstep networking** â€
 
 Written in **Go + C**, with the simulation core in C and networking logic in Go.
 
-This is my first project using C. learned about memory layout,struct padding, deterministic simulation and interfacing Go with C via CGo.
 ---
+This is my first project using C. learned about memory layout,struct padding, deterministic simulation and interfacing Go with C via CGo.
 
 ## Demo
 
