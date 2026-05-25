@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"lockstep-pong/bridge"
 	"lockstep-pong/relay"
-	"time"
+	"lockstep-pong/render"
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 func main() {
@@ -32,14 +33,14 @@ func main() {
 		bridge.SimInit(&state)
 		var currentTick uint64 = 0
 		buffer := make(map[uint64]map[uint8]relay.InputPacket) //tick -> playerID -> packet
-		ticker := time.NewTicker(time.Second / 60)
-		defer ticker.Stop()
-		for range ticker.C {
+		
+		onUpdate := func() {
 			//send local input
 			var keys uint8 = 0
-			if *playerID == 1 {
+			if ebiten.IsKeyPressed(ebiten.KeyW) || ebiten.IsKeyPressed(ebiten.KeyUp) {
 				keys |= 1 //player 1 up
-			} else {
+			} 
+			if ebiten.IsKeyPressed(ebiten.KeyS) || ebiten.IsKeyPressed(ebiten.KeyDown) {
 				keys |= 2 //player 2 down
 			}
 			packet := relay.InputPacket{
@@ -68,12 +69,11 @@ func main() {
 						buffer[recvPacket.Tick] = make(map[uint8]relay.InputPacket)
 					}
 					buffer[recvPacket.Tick][recvPacket.PlayerID] = recvPacket
-						
+							
 				default:
-					break DrainLoop
-					
+					break DrainLoop			
 				}
-				
+					
 			}
 			if len(buffer[currentTick]) == 2 {
 				//advance simulation
@@ -83,14 +83,15 @@ func main() {
 				}
 				bridge.SimTick(&state, inputs)
 				fmt.Printf("tick=%d hash=%d\n",currentTick,bridge.SimHash(&state))
-
 				//delete old ticks from buffer
 				delete(buffer, currentTick) 
-
 				currentTick++
 			}
-			
-
 		}
+		game := render.NewPongGame(&state, onUpdate)
+		ebiten.SetWindowSize(800, 600)
+		ebiten.SetWindowTitle("Lockstep Pong")
+		ebiten.RunGame(game)
+			
 	}
 }
